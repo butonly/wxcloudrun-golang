@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/websocket"
 
 	"wxcloudrun-golang/db/dao"
 	"wxcloudrun-golang/db/model"
@@ -22,6 +25,30 @@ type JsonResult struct {
 
 // IndexHandler 计数器接口
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Upgrade") == "websocket" {
+		upgrader := websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+		conn, err := upgrader.Upgrade(w, r, nil)
+
+		if err != nil {
+			log.Printf("websocket upgrade error: %+v", err)
+			return
+		}
+
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Printf("websocket read message error: %+v", err)
+				return
+			}
+			log.Printf("websocket recv&send message: %+v", string(msg))
+			err = conn.WriteMessage(websocket.TextMessage, msg)
+		}
+	}
+
 	data, err := getIndex()
 	if err != nil {
 		fmt.Fprint(w, "内部错误")
