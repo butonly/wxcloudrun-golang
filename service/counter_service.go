@@ -25,6 +25,7 @@ type JsonResult struct {
 
 // IndexHandler 计数器接口
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("IndexHandler ---> %+v %+v%+v, %+v", r.Method, r.Host, r.URL.String(), r.Header)
 	if r.Header.Get("Upgrade") == "websocket" {
 		upgrader := websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
